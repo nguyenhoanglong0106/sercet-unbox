@@ -91,8 +91,12 @@ npm run deploy
 ```
 
 Các route SPA (`/presenter`, `/setup`, `/reveal/:id`, `/ket-qua`) hoạt động khi refresh trang nhờ
-`assets.not_found_handling = "single-page-application"` trong `wrangler.jsonc`. File
-`public/_redirects` chỉ còn tác dụng nếu quay lại deploy bằng Cloudflare Pages.
+`assets.not_found_handling = "single-page-application"` trong `wrangler.jsonc`.
+
+> Đừng thêm lại file `public/_redirects` với luật `/* /index.html 200`. Luật đó dành cho Cloudflare
+> Pages; Workers coi nó là vòng lặp vô hạn và **chặn deploy** với lỗi
+> `Invalid _redirects configuration ... Infinite loop detected [code: 100324]`, dù assets đã upload
+> xong. Chuyển hướng SPA trên Workers do `not_found_handling` đảm nhiệm.
 
 ## 6. Cách thêm hình ảnh
 
