@@ -91,7 +91,7 @@
         <li>
           Điền <strong>Build settings</strong>: Framework preset <code>Vite</code> (hoặc
           <code>None</code> nếu không có), Build command <code>npm run build</code>, Build output
-          directory <code>dist</code>, còn <strong>Deploy command</strong> để trống.
+          directory <code>dist</code>.
         </li>
       </ol>
 

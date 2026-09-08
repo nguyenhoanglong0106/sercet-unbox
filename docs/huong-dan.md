@@ -227,7 +227,6 @@ toàn bộ thư mục dự án này.
 5. Ở phần **Build settings**, điền đúng:
    - **Framework preset**: chọn `Vite` (nếu không có, để `None`)
    - **Build command**: `npm run build`
-   - **Deploy command**: **để trống** (nếu ô này có sẵn nội dung, xoá đi)
    - **Build output directory**: `dist`
 6. **Chưa bấm Save and Deploy vội** — cuộn xuống mục **Environment variables (advanced)** để làm
    tiếp bước 3.3.
@@ -439,11 +438,12 @@ công bố (trang này ai cũng xem được, không cần đăng nhập).
 ## 8. Xử lý sự cố thường gặp
 
 **Cloudflare build xong nhưng deploy hỏng: `Authentication error [code: 10000]`**
-→ Project đang có ô **Deploy command** chạy `wrangler pages deploy` bằng một API token riêng thiếu
-quyền. Vào **Workers & Pages → chọn project → Settings**: ở mục **Build** xoá trống ô **Deploy
-command**, ở mục **Variables and Secrets** xoá biến `CLOUDFLARE_API_TOKEN` và
-`CLOUDFLARE_ACCOUNT_ID` (chỉ giữ 2 biến `VITE_SUPABASE_*`). Sau đó **Retry deployment**. Pages tự
-upload thư mục `dist`, không cần token.
+→ Ô **Deploy command** đang chạy `wrangler pages deploy` trong khi project được tạo dưới dạng
+**Worker** (nhận ra bằng đường dẫn `.../workers/services/view/...` trên thanh địa chỉ). Vào
+**Workers & Pages → chọn project → Settings → Build**, sửa **Deploy command** thành
+`npx wrangler deploy` rồi **Retry deployment**. Cấu hình còn lại đã nằm sẵn trong file
+`wrangler.jsonc` của mã nguồn. Nếu project là Pages project thật (đường dẫn `.../pages/view/...`)
+thì không cần deploy command, để trống là được.
 
 **Vào trang quản trị báo "Không tải được dữ liệu từ Supabase"**
 → Kiểm tra lại 2 biến môi trường `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` trên Cloudflare
