@@ -227,6 +227,7 @@ toàn bộ thư mục dự án này.
 5. Ở phần **Build settings**, điền đúng:
    - **Framework preset**: chọn `Vite` (nếu không có, để `None`)
    - **Build command**: `npm run build`
+   - **Deploy command**: **để trống** (nếu ô này có sẵn nội dung, xoá đi)
    - **Build output directory**: `dist`
 6. **Chưa bấm Save and Deploy vội** — cuộn xuống mục **Environment variables (advanced)** để làm
    tiếp bước 3.3.
@@ -242,6 +243,9 @@ nguồn công khai.
 | -------------------------- | ----------------------------------------- |
 | `VITE_SUPABASE_URL`        | Project URL đã copy ở bước 2.4            |
 | `VITE_SUPABASE_ANON_KEY`   | anon public key đã copy ở bước 2.4        |
+
+Chỉ cần đúng 2 biến này. **Không** thêm `CLOUDFLARE_API_TOKEN` hay `CLOUDFLARE_ACCOUNT_ID` — thêm
+vào sẽ làm bước deploy báo lỗi `Authentication error [code: 10000]`.
 
 Sau đó bấm **Save and Deploy**. Đợi khoảng 1–3 phút, Cloudflare sẽ build và cấp cho bạn một đường
 link dạng `https://ten-du-an.pages.dev` — đây chính là trang web để dùng.
@@ -433,6 +437,13 @@ công bố (trang này ai cũng xem được, không cần đăng nhập).
 ---
 
 ## 8. Xử lý sự cố thường gặp
+
+**Cloudflare build xong nhưng deploy hỏng: `Authentication error [code: 10000]`**
+→ Project đang có ô **Deploy command** chạy `wrangler pages deploy` bằng một API token riêng thiếu
+quyền. Vào **Workers & Pages → chọn project → Settings**: ở mục **Build** xoá trống ô **Deploy
+command**, ở mục **Variables and Secrets** xoá biến `CLOUDFLARE_API_TOKEN` và
+`CLOUDFLARE_ACCOUNT_ID` (chỉ giữ 2 biến `VITE_SUPABASE_*`). Sau đó **Retry deployment**. Pages tự
+upload thư mục `dist`, không cần token.
 
 **Vào trang quản trị báo "Không tải được dữ liệu từ Supabase"**
 → Kiểm tra lại 2 biến môi trường `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` trên Cloudflare

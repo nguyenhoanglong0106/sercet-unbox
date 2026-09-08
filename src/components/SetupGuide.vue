@@ -91,7 +91,7 @@
         <li>
           Điền <strong>Build settings</strong>: Framework preset <code>Vite</code> (hoặc
           <code>None</code> nếu không có), Build command <code>npm run build</code>, Build output
-          directory <code>dist</code>.
+          directory <code>dist</code>, còn <strong>Deploy command</strong> để trống.
         </li>
       </ol>
 
@@ -109,6 +109,11 @@
           <tr><td><code>VITE_SUPABASE_ANON_KEY</code></td><td>anon public key đã lấy ở mục 2.3</td></tr>
         </tbody>
       </table>
+      <p>
+        Chỉ cần đúng 2 biến này. <strong>Không</strong> thêm <code>CLOUDFLARE_API_TOKEN</code> hay
+        <code>CLOUDFLARE_ACCOUNT_ID</code> — thêm vào sẽ làm bước deploy báo lỗi
+        <code>Authentication error [code: 10000]</code>.
+      </p>
       <p>
         Bấm <strong>Save and Deploy</strong>. Đợi 1–3 phút, Cloudflare cấp một đường link dạng
         <code>https://ten-du-an.pages.dev</code> — đây là trang web chính thức để dùng.

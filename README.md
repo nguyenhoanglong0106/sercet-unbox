@@ -60,21 +60,39 @@ npm run test:organization
 Test giả lập API, không sửa dữ liệu Supabase thật; ảnh chụp giao diện nằm trong `test-results/`.
 Nếu dev server chạy cổng khác, đặt biến môi trường `TEST_BASE_URL` theo URL tương ứng.
 
-## 5. Deploy Cloudflare Pages
+## 5. Deploy Cloudflare Workers
 
-Trong Cloudflare Dashboard:
+Project chạy dưới dạng **Worker + static assets**. Cấu hình deploy nằm sẵn trong
+[`wrangler.jsonc`](wrangler.jsonc) nên trên dashboard chỉ cần khai báo cách build.
 
-- Build command: `npm run build`
-- Output directory: `dist`
-- Framework preset: Vue hoặc Vite
+Trong Cloudflare Dashboard (**Workers & Pages → sercet-unbox → Settings → Build**):
 
-File `public/_redirects` đã có:
+| Mục            | Giá trị            |
+| -------------- | ------------------ |
+| Build command  | `npm run build`    |
+| Deploy command | `npx wrangler deploy` |
+| Root directory | `/`                |
 
-```txt
-/* /index.html 200
+Không có ô "Build output directory" ở đây — thư mục output khai báo trong `wrangler.jsonc` qua
+`assets.directory`.
+
+Biến môi trường lúc build (**Settings → Build → Variables and Secrets**) cần đúng 2 biến
+`VITE_SUPABASE_URL` và `VITE_SUPABASE_ANON_KEY`. Vite nhúng chúng vào bundle lúc build, nên phải
+đặt ở phần build chứ không phải runtime variables.
+
+> Đừng dùng `wrangler pages deploy` ở đây. Đó là lệnh cho Cloudflare Pages; project này là Worker
+> nên lệnh sẽ đi tìm một Pages project không tồn tại và hỏng với
+> `Authentication error [code: 10000]` dù `npm run build` đã chạy xong.
+
+Muốn deploy tay từ máy (không qua Git), chạy `npx wrangler login` một lần rồi:
+
+```bash
+npm run deploy
 ```
 
-Nhờ vậy các route SPA như `/presenter`, `/setup`, `/reveal/:id` hoạt động khi refresh trang.
+Các route SPA (`/presenter`, `/setup`, `/reveal/:id`, `/ket-qua`) hoạt động khi refresh trang nhờ
+`assets.not_found_handling = "single-page-application"` trong `wrangler.jsonc`. File
+`public/_redirects` chỉ còn tác dụng nếu quay lại deploy bằng Cloudflare Pages.
 
 ## 6. Cách thêm hình ảnh
 

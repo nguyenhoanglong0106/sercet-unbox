@@ -1,0 +1,13 @@
+{
+  // Cấu hình deploy lên Cloudflare Workers (static assets).
+  // Deploy command trên dashboard chỉ cần: npx wrangler deploy
+  "name": "sercet-unbox",
+  "compatibility_date": "2026-09-08",
+  "assets": {
+    // Thư mục vite build sinh ra
+    "directory": "./dist",
+    // Mọi route không khớp file tĩnh đều trả index.html, để các route SPA như
+    // /presenter, /setup, /reveal/:id, /ket-qua hoạt động khi refresh trang.
+    "not_found_handling": "single-page-application"
+  }
+}
