@@ -193,6 +193,15 @@
               <RefreshCcw :size="18" />
               Reset
             </button>
+            <button
+              class="text-button text-button--danger"
+              type="button"
+              :disabled="!classesStore.orderedClasses.length"
+              @click="deleteAllClasses"
+            >
+              <Trash2 :size="18" />
+              Xóa hết lớp
+            </button>
           </div>
         </div>
 
@@ -209,10 +218,19 @@
             @drop="dropOn(classItem)"
           >
             <GripVertical class="drag-handle" :size="18" />
-            <TeacherPhoto :src="classItem.teacherImage" :name="classItem.teacherName" size="small" />
+            <div class="class-card-photos">
+              <TeacherPhoto :src="classItem.teacherImage" :name="classItem.teacherName" size="small" />
+              <TeacherPhoto
+                v-if="classItem.assistantName || classItem.assistantImage"
+                :src="classItem.assistantImage"
+                :name="classItem.assistantName"
+                size="small"
+              />
+            </div>
             <div class="class-card-main">
               <strong>{{ classItem.className }}</strong>
               <span>{{ classItem.teacherName || 'Chưa nhập GLV' }}</span>
+              <span v-if="classItem.assistantName">{{ classItem.assistantName }}</span>
             </div>
             <span class="status-pill" :class="{ revealed: classItem.revealed }">
               {{ classItem.revealed ? 'Đã mở' : 'Chưa mở' }}
@@ -372,6 +390,19 @@ async function handleGlvFile(event) {
   await glv.handleFile(file);
 }
 
+async function deleteAllClasses() {
+  const total = classesStore.orderedClasses.length;
+  if (!total) return;
+  if (!confirm(`Xóa vĩnh viễn toàn bộ ${total} lớp? Thao tác này không thể hoàn tác.`)) return;
+
+  try {
+    await classesStore.deleteAllClasses();
+    resetForm();
+    classFilterDivision.value = '';
+  } catch (error) {
+    alert(error.message);
+  }
+}
 async function resetReveals() {
   if (!confirm('Bạn có chắc muốn đưa tất cả túi về trạng thái chưa mở?')) return;
   try {

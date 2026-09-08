@@ -11,7 +11,7 @@
     <div ref="contentNode" class="poster-content" :style="{ transform: `scale(${contentScale})` }">
       <header class="poster-header">
         <OrganizationLogo class="poster-logo" :src="organization.logoUrl" />
-        <div>
+        <div class="poster-header-text">
           <p>{{ organization.name }}</p>
           <strong>{{ organization.parishName }}</strong>
           <small class="poster-year">Niên khóa {{ organization.academicYear }}</small>
@@ -112,8 +112,13 @@ const assistantParts = computed(() => splitName(item.value.assistantName));
 // Keep long organization names and slogans inside the fixed poster format.
 function fitContent() {
   const available = posterNode.value?.clientHeight;
-  const required = contentNode.value?.scrollHeight;
-  if (available && required) contentScale.value = Math.min(1, available / required);
+  const content = contentNode.value;
+  if (!available || !content) return;
+  // Panel thông tin giãn kín khung nên phần nội dung tràn bên trong nó không
+  // còn được tính vào scrollHeight của content — cộng bù phần dôi ra đó.
+  const panel = content.querySelector('.poster-info-panel');
+  const panelOverflow = panel ? Math.max(0, panel.scrollHeight - panel.clientHeight) : 0;
+  contentScale.value = Math.min(1, available / (content.scrollHeight + panelOverflow));
 }
 
 onMounted(() => {

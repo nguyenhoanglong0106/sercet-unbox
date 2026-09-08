@@ -443,7 +443,7 @@ img {
 
 .setup-classes-layout {
   display: grid;
-  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  grid-template-columns: minmax(320px, 1fr) minmax(0, 2fr);
   gap: 20px;
   align-items: stretch;
   margin-top: 20px;
@@ -763,9 +763,20 @@ textarea:focus {
   min-width: 0;
 }
 
-.class-card .teacher-photo {
+.class-card-photos {
   grid-area: avatar;
+  display: flex;
   justify-self: end;
+  align-items: center;
+}
+
+.class-card-photos .teacher-photo + .teacher-photo {
+  margin-left: -14px;
+}
+
+.class-card-photos .teacher-photo {
+  width: 52px;
+  height: 52px;
 }
 
 .class-card .status-pill {
@@ -1336,6 +1347,8 @@ textarea:focus {
   font-size: 0.95rem;
   font-weight: 900;
   line-height: 1.2;
+  -webkit-text-stroke: 1px #ffffff;
+  paint-order: stroke fill;
 }
 
 .bag-check {
@@ -1456,8 +1469,15 @@ textarea:focus {
   text-transform: uppercase;
 }
 
+.poster-header-text {
+  min-width: 0;
+}
+
 .poster-header p {
-  font-size: 0.74rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.78rem;
   font-weight: 850;
 }
 
@@ -1465,19 +1485,19 @@ textarea:focus {
   display: block;
   margin-top: 0.12rem;
   color: var(--theme-deep);
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 .poster-year {
   display: block;
   margin-top: 4px;
   color: #425d70;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
 }
 
 .poster-logo {
-  width: 58px;
-  height: 58px;
+  width: 64px;
+  height: 64px;
   flex: 0 0 auto;
   object-fit: contain;
   border-radius: 50%;
@@ -1486,14 +1506,16 @@ textarea:focus {
 
 .poster-info-panel {
   display: flex;
+  flex: 1;
+  min-height: 0;
   flex-direction: column;
-  flex-shrink: 0;
-  gap: 21px;
+  justify-content: space-evenly;
+  gap: 16px;
   margin: 0 16px;
   padding: 18px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(1px);
   box-shadow: 0 8px 24px rgba(18, 74, 104, 0.14);
 }
 
@@ -1507,7 +1529,7 @@ textarea:focus {
 .poster-class-name span,
 .poster-teacher-name span {
   color: var(--theme-deep);
-  font-size: 1rem;
+  font-size: 1.3rem;
   font-weight: 950;
   text-transform: uppercase;
 }
@@ -1519,7 +1541,7 @@ textarea:focus {
   white-space: nowrap;
   text-overflow: ellipsis;
   color: #0d1f2d;
-  font-size: 2.2rem;
+  font-size: 2.45rem;
   font-weight: 950;
   line-height: 1.05;
   text-transform: uppercase;
@@ -1530,10 +1552,11 @@ textarea:focus {
 .poster-class-name p {
   margin: 0.5rem 0 0;
   border-radius: 999px;
-  padding: 0.3rem 0.7rem;
+  padding: 0.36rem 0.85rem;
   color: #ffffff;
   background: var(--poster-primary);
   font-weight: 850;
+  font-size: 1.05rem;
 }
 
 .poster-photo-row {
@@ -1543,7 +1566,13 @@ textarea:focus {
   flex-shrink: 0;
   justify-content: center;
   align-items: center;
-  gap: 14px;
+  gap: 18px;
+}
+
+.poster-photo-row .teacher-photo--medium {
+  width: 100px;
+  height: 100px;
+  font-size: 1.35rem;
 }
 
 .poster-teacher-name {
@@ -1557,7 +1586,7 @@ textarea:focus {
   max-width: 100%;
   margin: 0.35rem 0 0;
   color: #143044;
-  font-size: 1.55rem;
+  font-size: 1.7rem;
   line-height: 1.28;
   text-transform: uppercase;
 }
@@ -1578,7 +1607,7 @@ textarea:focus {
   display: block;
   margin: 0.2rem 0;
   color: var(--theme-deep);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 800;
 }
 
@@ -1589,7 +1618,7 @@ textarea:focus {
   padding-top: 10px;
   color: #23445a;
   text-align: center;
-  font-size: 0.96rem;
+  font-size: 1.04rem;
   font-weight: 800;
 }
 
@@ -2197,6 +2226,66 @@ textarea:focus {
     font-size: 1.28rem;
   }
 
+  /* Mobile Presenter: chỉ giữ bộ lọc và danh sách túi mù. */
+  .presenter-view:not(.presenter-view--intro) {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow-y: auto;
+  }
+
+  .presenter-board {
+    display: block;
+    height: auto;
+    min-height: 100dvh;
+    padding: 70px 12px 28px;
+    overflow: visible;
+  }
+
+  .presenter-toolbar {
+    position: absolute;
+    top: 14px;
+    right: 12px;
+    left: 12px;
+    justify-content: center;
+    margin: 0;
+  }
+
+  .presenter-toolbar > :not(.division-select) {
+    display: none;
+  }
+
+  .presenter-toolbar .division-select {
+    width: min(100%, 240px);
+    min-height: 42px;
+    font-size: 0.95rem;
+  }
+
+  .presenter-board .blind-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 26px 10px;
+    height: auto;
+    padding: 0;
+    align-content: start;
+    overflow: visible;
+  }
+
+  .presenter-board .blind-bag {
+    width: min(100%, 158px);
+    min-width: 0;
+    max-width: 158px;
+  }
+
+  /* Trên màn hình mở túi, chạm vào túi để bắt đầu và chỉ giữ nút quay lại. */
+  .reveal-stage .stage-actions {
+    top: 12px;
+    right: auto;
+    bottom: auto;
+    left: 12px;
+  }
+
+  .reveal-stage .stage-actions > :not(.stage-back-button) {
+    display: none;
+  }
   .glv-toolbar-row {
     flex-direction: column;
     align-items: stretch;

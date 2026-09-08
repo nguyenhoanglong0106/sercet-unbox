@@ -44,7 +44,7 @@
         <VolumeX v-else :size="20" />
       </button>
       <FullscreenButton />
-      <button class="icon-button" type="button" title="Về màn hình chọn túi mù" @click="$emit('back')">
+      <button class="icon-button stage-back-button" type="button" title="Về màn hình chọn túi mù" @click="$emit('back')">
         <ArrowLeft :size="20" />
       </button>
       <button class="icon-button icon-button--primary" type="button" title="Bắt đầu xé túi" @click="startReveal">

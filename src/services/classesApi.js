@@ -71,6 +71,11 @@ export async function deleteClassRow(id) {
   assertNoError(error, 'Xóa lớp');
 }
 
+export async function deleteClassRows(ids) {
+  if (!ids.length) return;
+  const { error } = await supabase.from(TABLE).delete().in('id', ids);
+  assertNoError(error, 'Xóa toàn bộ lớp');
+}
 export async function upsertClasses(classItems) {
   if (!classItems.length) return;
   const { error } = await supabase.from(TABLE).upsert(classItems.map(toRow));

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { getDivisionMeta } from '@/data/divisions';
-import { deleteClassRow, fetchClasses, insertClass, updateClassRow, upsertClasses } from '@/services/classesApi';
+import { deleteClassRow, deleteClassRows, fetchClasses, insertClass, updateClassRow, upsertClasses } from '@/services/classesApi';
 
 function createId() {
   return crypto.randomUUID?.() || `class-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -81,6 +81,12 @@ export const useClassesStore = defineStore('classes', {
     async deleteClass(id) {
       await deleteClassRow(id);
       this.classes = this.classes.filter((item) => item.id !== id);
+    },
+    async deleteAllClasses() {
+      const ids = this.classes.map((item) => item.id);
+      if (!ids.length) return;
+      await deleteClassRows(ids);
+      this.classes = [];
     },
     async duplicateClass(id) {
       const source = this.byId(id);
