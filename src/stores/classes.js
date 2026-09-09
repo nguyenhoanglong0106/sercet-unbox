@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { getDivisionMeta } from '@/data/divisions';
+import { getDivisionMeta, normalizeForMatch } from '@/data/divisions';
 import { deleteClassRow, deleteClassRows, fetchClasses, insertClass, updateClassRow, upsertClasses } from '@/services/classesApi';
 
 function createId() {
@@ -40,6 +40,35 @@ export const useClassesStore = defineStore('classes', {
     revealCandidates: (state) => (onlyUnrevealed = true) => {
       const ordered = [...state.classes].sort((a, b) => a.order - b.order);
       return onlyUnrevealed ? ordered.filter((item) => !item.revealed) : ordered;
+    },
+    // Tra cứu GLV theo tên đầy đủ (tên thánh + họ + tên). Lớp có 2 GLV thì dò
+    // cả teacherName lẫn assistantName. Ưu tiên trùng khớp tuyệt đối; nếu không
+    // có mới lấy các kết quả khớp một phần để người dùng chọn lại.
+    findGlvMatches: (state) => (query) => {
+      const needle = normalizeForMatch(query);
+      if (!needle) return [];
+
+      const matches = [];
+      const ordered = [...state.classes].sort((a, b) => a.order - b.order);
+
+      for (const classItem of ordered) {
+        for (const role of ['teacherName', 'assistantName']) {
+          const glvName = classItem[role];
+          const normalized = normalizeForMatch(glvName);
+          if (!normalized) continue;
+
+          let score = -1;
+          if (normalized === needle) score = 0;
+          else if (normalized.includes(needle)) score = 1;
+          else if (needle.includes(normalized)) score = 2;
+          if (score < 0) continue;
+
+          matches.push({ classItem, glvName, role, score });
+        }
+      }
+
+      const exact = matches.filter((match) => match.score === 0);
+      return (exact.length ? exact : matches).sort((a, b) => a.score - b.score);
     },
   },
   actions: {

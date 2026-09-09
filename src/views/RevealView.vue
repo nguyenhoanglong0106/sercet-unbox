@@ -2,8 +2,9 @@
   <main class="reveal-view">
     <RevealStage
       v-if="classItem"
-      :key="classItem.id"
+      :key="`${classItem.id}-${glvName}`"
       :class-item="classItem"
+      :glv-name="glvName"
       @complete="markComplete"
       @back="router.push('/presenter')"
     />
@@ -33,8 +34,13 @@ onMounted(() => {
 });
 
 const classItem = computed(() => classesStore.byId(route.params.id));
+// Tên GLV đi kèm khi mở túi mù từ luồng tra cứu Giáo Lý Viên.
+const glvName = computed(() => String(route.query.glv || ''));
 
 function markComplete(item) {
+  // Chế độ GLV chỉ tra cứu lớp phụ trách, không đụng tới trạng thái túi mù của
+  // buổi phát cho thiếu nhi.
+  if (glvName.value) return;
   classesStore.markRevealed(item.id);
 }
 </script>

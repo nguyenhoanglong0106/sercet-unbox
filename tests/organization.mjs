@@ -161,8 +161,8 @@ try {
   await assertLayout(page, 'presenter-landscape', { width: 844, height: 390 });
   const intro = await page.locator('.intro-logo').boundingBox();
   assert.ok(intro.y >= 0, 'Presenter logo must be reachable at the top of the page');
-  await page.getByRole('button', { name: 'Bắt đầu', exact: true }).scrollIntoViewIfNeeded();
-  await page.getByRole('button', { name: 'Bắt đầu', exact: true }).click();
+  await page.getByRole('button', { name: 'Thiếu Nhi', exact: true }).scrollIntoViewIfNeeded();
+  await page.getByRole('button', { name: 'Thiếu Nhi', exact: true }).click();
   await page.locator('.presenter-board').waitFor();
   await context.close();
   console.log('PASS: validation, upload, preview, draft protection, online save/reload, branding and responsive layouts');

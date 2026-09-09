@@ -53,6 +53,19 @@ export const DIVISIONS = {
 
 export const DIVISION_OPTIONS = Object.values(DIVISIONS);
 
+// Theme riêng cho túi mù của Giáo Lý Viên — màu đỏ, không nằm trong DIVISIONS
+// để không lọt vào bộ lọc ngành ở màn hình presenter.
+export const GLV_THEME = {
+  key: 'GLV',
+  label: 'Giáo Lý Viên',
+  shortLabel: 'GLV',
+  color: '#e0453f',
+  soft: '#ffe1de',
+  accent: '#ffd166',
+  deep: '#8a1c17',
+  asset: '/assets/thieu-nhi.jpg',
+};
+
 export const ASSETS = {
   background: '/assets/background.png',
   church: '/assets/church-bac-than.png',
@@ -63,6 +76,7 @@ export const ASSETS = {
 };
 
 export function getDivisionMeta(key = 'THIEU_NHI') {
+  if (key === GLV_THEME.key) return GLV_THEME;
   return DIVISIONS[key] || DIVISIONS.THIEU_NHI;
 }
 
@@ -75,7 +89,7 @@ export function toAssetStyle(meta) {
   };
 }
 
-function normalizeForMatch(value) {
+export function normalizeForMatch(value) {
   return String(value ?? '')
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')

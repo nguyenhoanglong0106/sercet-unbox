@@ -5,7 +5,7 @@
     :style="stageStyle"
     @mousemove="showControls"
   >
-    <ParticleBackground :variant="classItem.division" :intensity="particleIntensity" :reduce-motion="settings.reduceMotion" />
+    <ParticleBackground :variant="stageMeta.key" :intensity="particleIntensity" :reduce-motion="settings.reduceMotion" />
 
     <div class="stage-atmosphere"></div>
     <div class="stage-shell">
@@ -19,8 +19,11 @@
         <BlindBag
           :class-item="classItem"
           :hero="true"
-          :revealed="completed || classItem.revealed"
+          :revealed="completed"
+          :ignore-class-revealed="isGlvMode"
           :disabled="running"
+          :theme-key="isGlvMode ? 'GLV' : ''"
+          :label-override="isGlvMode ? 'Chạm vào túi để mở' : ''"
           @select="startReveal"
         />
         <TearAnimation :phase="phase" />
@@ -29,7 +32,7 @@
       <div ref="lightNode" class="reveal-light"></div>
 
       <div ref="posterWrapNode" class="poster-theater">
-        <ClassRevealPoster ref="posterComponent" :class-item="classItem" animated />
+        <ClassRevealPoster ref="posterComponent" :class-item="classItem" :solo-name="glvName" animated />
       </div>
     </div>
 
@@ -87,7 +90,7 @@ import ParticleBackground from '@/components/ParticleBackground.vue';
 import TearAnimation from '@/components/TearAnimation.vue';
 import { useSound } from '@/composables/useSound';
 import { buildRevealTimeline } from '@/composables/useAnimation';
-import { getDivisionMeta, toAssetStyle } from '@/data/divisions';
+import { GLV_THEME, getDivisionMeta, toAssetStyle } from '@/data/divisions';
 import { downloadPoster } from '@/services/exportService';
 import { useSettingsStore } from '@/stores/settings';
 
@@ -95,6 +98,12 @@ const props = defineProps({
   classItem: {
     type: Object,
     required: true,
+  },
+  // Có giá trị khi đi từ luồng tra cứu Giáo Lý Viên: túi mù màu đỏ, poster chỉ
+  // hiện đúng GLV này.
+  glvName: {
+    type: String,
+    default: '',
   },
 });
 
@@ -118,9 +127,19 @@ let timeline;
 let controlsTimer;
 
 const meta = computed(() => getDivisionMeta(props.classItem.division));
+const isGlvMode = computed(() => Boolean(props.glvName));
+// Trước khi poster hiện ra, sân khấu chế độ GLV giữ tông đỏ của túi mù để không
+// lộ ngành của lớp; mở xong mới chuyển về màu của ngành.
+const posterShown = computed(
+  () => completed.value || ['light', 'poster-enter', 'reveal-text', 'celebrate'].includes(phase.value),
+);
+const stageMeta = computed(() =>
+  isGlvMode.value && !posterShown.value ? GLV_THEME : meta.value,
+);
 const stageStyle = computed(() => ({
-  ...toAssetStyle(meta.value),
-  '--stage-primary': props.classItem.primaryColor || meta.value.color,
+  ...toAssetStyle(stageMeta.value),
+  '--stage-primary':
+    stageMeta.value === meta.value ? props.classItem.primaryColor || meta.value.color : stageMeta.value.color,
 }));
 const particleIntensity = computed(() => {
   if (['shake', 'tear', 'open', 'light'].includes(phase.value)) return 1.55;
@@ -128,13 +147,13 @@ const particleIntensity = computed(() => {
   return 0.82;
 });
 const stageMessage = computed(() => {
-  if (phase.value === 'idle') return 'Các bạn đã sẵn sàng chưa?';
+  if (phase.value === 'idle') return isGlvMode.value ? `Chào GLV ${props.glvName}` : 'Các bạn đã sẵn sàng chưa?';
   if (phase.value === 'countdown') return 'Cùng đếm ngược';
   if (phase.value === 'shake') return 'Túi mù đang chuyển động';
   if (phase.value === 'tear') return 'Mở túi mù';
   if (phase.value === 'poster-enter') return `Lớp ${props.classItem.className}`;
-  if (phase.value === 'reveal-text') return 'Giáo Lý Viên';
-  if (completed.value) return 'Chào mừng';
+  if (phase.value === 'reveal-text') return isGlvMode.value ? 'Lớp phụ trách năm nay' : 'Giáo Lý Viên';
+  if (completed.value) return isGlvMode.value ? 'Chúc mừng' : 'Chào mừng';
   return 'Khám phá lớp giáo lý';
 });
 

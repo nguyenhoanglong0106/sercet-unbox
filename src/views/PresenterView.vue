@@ -2,7 +2,7 @@
   <main class="presenter-view" :class="{ 'presenter-view--intro': !started }">
     <ParticleBackground variant="THIEU_NHI" :intensity="randomRunning ? 1.6 : 0.95" :reduce-motion="settings.reduceMotion" />
 
-    <section v-if="!started" class="presenter-intro">
+    <section v-if="!started" class="presenter-intro" :class="{ 'presenter-intro--glv': mode === 'glv' }">
       <OrganizationLogo class="intro-logo" :src="organization.profile.logoUrl" />
       <span>{{ organization.profile.name }}</span>
       <strong>{{ organization.profile.parishName }}</strong>
@@ -11,12 +11,61 @@
       <p>Nhận Lớp Giáo Lý</p>
       <span>Niên khóa {{ organization.profile.academicYear }}</span>
       <span v-if="organization.profile.slogan">{{ organization.profile.slogan }}</span>
-      <div class="presenter-intro-actions">
+      <div v-if="mode !== 'glv'" class="presenter-intro-actions">
         <button class="text-button text-button--primary" type="button" @click="startPresenter">
           <Play :size="20" />
-          Bắt đầu
+          Thiếu Nhi
+        </button>
+        <button class="text-button text-button--glv" type="button" @click="openGlvLookup">
+          <UserRound :size="20" />
+          Giáo Lý Viên
         </button>
       </div>
+
+      <form v-else class="glv-lookup" @submit.prevent="submitGlvLookup">
+        <h2>Giáo Lý Viên tra cứu lớp</h2>
+        <p class="glv-lookup-hint">
+          Nhập <b>đầy đủ Tên Thánh + Họ và Tên</b> — ví dụ: Maria Nguyễn Thị Lan
+        </p>
+        <div class="glv-lookup-row">
+          <input
+            ref="glvInput"
+            v-model="glvQuery"
+            class="glv-lookup-input"
+            type="text"
+            placeholder="Tên Thánh, Họ và Tên"
+            autocomplete="off"
+            spellcheck="false"
+            @input="clearGlvResult"
+          />
+          <button class="text-button text-button--glv" type="submit">
+            <Search :size="18" />
+            Tìm túi mù
+          </button>
+        </div>
+
+        <p v-if="glvError" class="glv-lookup-error">{{ glvError }}</p>
+
+        <div v-if="glvMatches.length > 1" class="glv-lookup-matches">
+          <p>Có {{ glvMatches.length }} kết quả gần giống, chọn đúng tên của bạn:</p>
+          <div class="glv-lookup-match-list">
+            <button
+              v-for="(match, index) in glvMatches"
+              :key="`${match.classItem.id}-${match.role}`"
+              class="text-button"
+              type="button"
+              @click="openGlvBag(match)"
+            >
+              {{ matchLabel(match, index) }}
+            </button>
+          </div>
+        </div>
+
+        <button class="glv-lookup-back" type="button" @click="closeGlvLookup">
+          <ArrowLeft :size="16" />
+          Quay lại
+        </button>
+      </form>
     </section>
 
     <section v-else class="presenter-board">
@@ -82,16 +131,19 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   Activity,
+  ArrowLeft,
   Eye,
   EyeOff,
   Play,
   RefreshCcw,
+  Search,
   Settings,
   Shuffle,
+  UserRound,
   Volume2,
   VolumeX,
 } from 'lucide-vue-next';
@@ -112,14 +164,19 @@ const organization = useOrganizationStore();
 const { play } = useSound();
 const divisions = DIVISION_OPTIONS;
 // Đọc/ghi qua settings store (không lưu localStorage) thay vì ref cục bộ, để
-// quay lại từ Reveal (route mới, component mount lại) vẫn giữ trạng thái đã
-// bắt đầu thay vì bắt bấm "Bắt đầu" lại.
-const started = computed({
-  get: () => settings.presenterStarted,
+// quay lại từ Reveal (route mới, component mount lại) vẫn giữ chế độ đang chạy
+// thay vì bắt chọn lại từ đầu.
+const mode = computed({
+  get: () => settings.presenterMode,
   set: (value) => {
-    settings.presenterStarted = value;
+    settings.presenterMode = value;
   },
 });
+const started = computed(() => mode.value === 'children');
+const glvInput = ref(null);
+const glvQuery = ref('');
+const glvError = ref('');
+const glvMatches = ref([]);
 const randomRunning = ref(false);
 const highlightedId = ref('');
 const selectedDivision = ref('');
@@ -130,9 +187,13 @@ const filteredClasses = computed(() => {
   return classesStore.orderedClasses.filter((item) => item.division === selectedDivision.value);
 });
 
-onMounted(() => {
+onMounted(async () => {
   classesStore.init();
   window.addEventListener('keydown', onKeydown);
+  if (mode.value === 'glv') {
+    await nextTick();
+    glvInput.value?.focus();
+  }
 });
 
 onBeforeUnmount(() => {
@@ -141,8 +202,72 @@ onBeforeUnmount(() => {
 });
 
 function startPresenter() {
-  started.value = true;
+  mode.value = 'children';
   play('magic');
+}
+
+async function openGlvLookup() {
+  mode.value = 'glv';
+  resetGlvLookup();
+  play('click');
+  await nextTick();
+  glvInput.value?.focus();
+}
+
+function closeGlvLookup() {
+  mode.value = '';
+  resetGlvLookup();
+}
+
+function resetGlvLookup() {
+  glvQuery.value = '';
+  clearGlvResult();
+}
+
+function clearGlvResult() {
+  glvError.value = '';
+  glvMatches.value = [];
+}
+
+function submitGlvLookup() {
+  const query = glvQuery.value.trim();
+  clearGlvResult();
+
+  if (!query) {
+    glvError.value = 'Bạn hãy nhập tên Thánh, họ và tên của mình nhé.';
+    return;
+  }
+  if (!classesStore.hydrated) {
+    glvError.value = 'Đang tải danh sách lớp, bạn thử lại sau giây lát.';
+    return;
+  }
+
+  const matches = classesStore.findGlvMatches(query);
+  if (!matches.length) {
+    glvError.value = `Không tìm thấy Giáo Lý Viên "${query}". Bạn kiểm tra lại xem đã ghi đầy đủ Tên Thánh + Họ và Tên chưa nhé.`;
+    return;
+  }
+  if (matches.length === 1) {
+    openGlvBag(matches[0]);
+    return;
+  }
+
+  glvMatches.value = matches;
+}
+
+// Trùng tên đầy đủ thì thêm số thứ tự túi để phân biệt — không lộ tên lớp.
+function matchLabel(match, index) {
+  const duplicated = glvMatches.value.filter((item) => item.glvName === match.glvName).length > 1;
+  return duplicated ? `${match.glvName} — túi mù ${index + 1}` : match.glvName;
+}
+
+function openGlvBag(match) {
+  play('magic');
+  router.push({
+    name: 'reveal',
+    params: { id: match.classItem.id },
+    query: { glv: match.glvName },
+  });
 }
 
 function goReveal(classItem) {
@@ -183,6 +308,7 @@ async function resetReveals() {
 
 function onKeydown(event) {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName)) return;
+  if (!started.value) return;
 
   if (event.code === 'Space') {
     event.preventDefault();

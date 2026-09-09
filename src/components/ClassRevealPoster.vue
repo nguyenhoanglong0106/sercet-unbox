@@ -26,18 +26,25 @@
         </section>
 
         <section class="poster-photo-row">
-          <TeacherPhoto :src="item.teacherImage" :name="item.teacherName" size="medium" />
-          <TeacherPhoto
-            v-if="item.assistantName || item.assistantImage"
-            :src="item.assistantImage"
-            :name="item.assistantName"
-            size="medium"
-          />
+          <TeacherPhoto v-if="soloName" :src="soloGlv.image" :name="soloGlv.name" size="medium" />
+          <template v-else>
+            <TeacherPhoto :src="item.teacherImage" :name="item.teacherName" size="medium" />
+            <TeacherPhoto
+              v-if="item.assistantName || item.assistantImage"
+              :src="item.assistantImage"
+              :name="item.assistantName"
+              size="medium"
+            />
+          </template>
         </section>
 
         <section class="poster-teacher-name">
           <span>Giáo Lý Viên</span>
-          <h2>
+          <h2 v-if="soloName">
+            <span class="poster-name-line">{{ soloParts.saintName }}</span>
+            <span v-if="soloParts.fullName" class="poster-name-line">{{ soloParts.fullName }}</span>
+          </h2>
+          <h2 v-else>
             <span class="poster-name-line">{{ teacherParts.saintName }}</span>
             <span v-if="teacherParts.fullName" class="poster-name-line">{{ teacherParts.fullName }}</span>
             <template v-if="item.assistantName">
@@ -46,6 +53,9 @@
               <span v-if="assistantParts.fullName" class="poster-name-line">{{ assistantParts.fullName }}</span>
             </template>
           </h2>
+          <p v-if="soloName && hasTwoGlv" class="poster-partner-note">
+            Lớp này có 2 Giáo Lý Viên phụ trách — hãy tìm người còn lại nhé!
+          </p>
         </section>
 
         <p v-if="item.slogan || organization.slogan" class="poster-slogan">{{ item.slogan || organization.slogan }}</p>
@@ -58,7 +68,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import TeacherPhoto from '@/components/TeacherPhoto.vue';
 import OrganizationLogo from '@/components/OrganizationLogo.vue';
-import { ASSETS, getDivisionMeta, toAssetStyle } from '@/data/divisions';
+import { ASSETS, getDivisionMeta, normalizeForMatch, toAssetStyle } from '@/data/divisions';
 import { useOrganizationStore } from '@/stores/organization';
 
 const props = defineProps({
@@ -70,6 +80,11 @@ const props = defineProps({
   animated: {
     type: Boolean,
     default: false,
+  },
+  // Chế độ Giáo Lý Viên: chỉ hiện đúng GLV vừa tra cứu, giấu tên người còn lại.
+  soloName: {
+    type: String,
+    default: '',
   },
 });
 
@@ -108,6 +123,17 @@ function splitName(fullName) {
 
 const teacherParts = computed(() => splitName(item.value.teacherName));
 const assistantParts = computed(() => splitName(item.value.assistantName));
+
+const hasTwoGlv = computed(() => Boolean(item.value.teacherName && item.value.assistantName));
+const soloGlv = computed(() => {
+  const isAssistant =
+    normalizeForMatch(item.value.assistantName) &&
+    normalizeForMatch(item.value.assistantName) === normalizeForMatch(props.soloName);
+  return isAssistant
+    ? { name: item.value.assistantName, image: item.value.assistantImage }
+    : { name: item.value.teacherName, image: item.value.teacherImage };
+});
+const soloParts = computed(() => splitName(soloGlv.value.name));
 
 // Keep long organization names and slogans inside the fixed poster format.
 function fitContent() {

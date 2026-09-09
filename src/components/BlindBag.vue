@@ -5,6 +5,7 @@
       'blind-bag--hero': hero,
       'blind-bag--revealed': isRevealed,
       'blind-bag--selected': selected,
+      'blind-bag--glv': themeKey === 'GLV',
     }"
     :style="bagStyle"
     type="button"
@@ -70,6 +71,22 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // Ghi đè theme màu của túi, vd 'GLV' cho túi mù màu đỏ của Giáo Lý Viên.
+  themeKey: {
+    type: String,
+    default: '',
+  },
+  // Ghi đè nhãn dưới túi — dùng khi không được lộ tên lớp trước lúc mở.
+  labelOverride: {
+    type: String,
+    default: '',
+  },
+  // Bỏ qua trạng thái đã mở của lớp: túi mù của GLV không được lộ việc lớp này
+  // đã được mở ở buổi phát cho thiếu nhi.
+  ignoreClassRevealed: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 defineEmits(['select']);
@@ -77,14 +94,17 @@ defineEmits(['select']);
 const organizationStore = useOrganizationStore();
 const organization = computed(() => props.organizationInfo || organizationStore.profile);
 
-const meta = computed(() => getDivisionMeta(props.classItem.division));
-const isRevealed = computed(() => props.revealed || props.classItem.revealed);
+const meta = computed(() => getDivisionMeta(props.themeKey || props.classItem.division));
+const isRevealed = computed(() =>
+  props.ignoreClassRevealed ? props.revealed : props.revealed || props.classItem.revealed,
+);
 const bagStyle = computed(() => ({
   ...toAssetStyle(meta.value),
-  '--bag-color': props.classItem.primaryColor || meta.value.color,
+  '--bag-color': props.themeKey ? meta.value.color : props.classItem.primaryColor || meta.value.color,
 }));
 
 const label = computed(() => {
+  if (props.labelOverride) return props.labelOverride;
   if (!props.showClassName) return `Túi Mù ${String(props.index + 1).padStart(2, '0')}`;
   return `Lớp ${props.classItem.className}`;
 });

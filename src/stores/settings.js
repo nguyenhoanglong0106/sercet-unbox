@@ -10,9 +10,10 @@ const DEFAULT_SETTINGS = {
   allowReReveal: true,
   randomOnlyUnrevealed: true,
   // Không lưu vào localStorage (xem persist() bên dưới) — chỉ giữ trong phiên
-  // làm việc hiện tại, để khi quay lại từ Reveal không phải bấm "Bắt đầu" lại,
+  // làm việc hiện tại, để khi quay lại từ Reveal không phải chọn lại chế độ,
   // nhưng vẫn về lại màn hình giới thiệu nếu tải lại trang.
-  presenterStarted: false,
+  // '' = màn hình chọn chế độ, 'children' = bảng túi mù thiếu nhi, 'glv' = tra cứu GLV.
+  presenterMode: '',
 };
 
 function loadSettings() {
