@@ -1,9 +1,26 @@
 import { defineStore } from 'pinia';
-import { getDivisionMeta, normalizeForMatch } from '@/data/divisions';
+import { DIVISION_OPTIONS, getDivisionMeta, normalizeForMatch } from '@/data/divisions';
 import { deleteClassRow, deleteClassRows, fetchClasses, insertClass, updateClassRow, upsertClasses } from '@/services/classesApi';
+
+const divisionOrder = new Map(DIVISION_OPTIONS.map((division, index) => [division.key, index]));
+const classNameCollator = new Intl.Collator('vi', { numeric: true, sensitivity: 'base' });
 
 function createId() {
   return crypto.randomUUID?.() || `class-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function getDivisionOrder(division) {
+  return divisionOrder.get(division) ?? divisionOrder.size;
+}
+
+function compareClasses(a, b) {
+  const divisionDiff = getDivisionOrder(a.division) - getDivisionOrder(b.division);
+  if (divisionDiff) return divisionDiff;
+
+  const nameDiff = classNameCollator.compare(String(a.className || '').trim(), String(b.className || '').trim());
+  if (nameDiff) return nameDiff;
+
+  return (a.order || 0) - (b.order || 0);
 }
 
 function normalizeClass(input = {}, index = 0) {
@@ -35,10 +52,10 @@ export const useClassesStore = defineStore('classes', {
     error: '',
   }),
   getters: {
-    orderedClasses: (state) => [...state.classes].sort((a, b) => a.order - b.order),
+    orderedClasses: (state) => [...state.classes].sort(compareClasses),
     byId: (state) => (id) => state.classes.find((classItem) => classItem.id === id),
     revealCandidates: (state) => (onlyUnrevealed = true) => {
-      const ordered = [...state.classes].sort((a, b) => a.order - b.order);
+      const ordered = [...state.classes].sort(compareClasses);
       return onlyUnrevealed ? ordered.filter((item) => !item.revealed) : ordered;
     },
     // Tra cứu GLV theo tên đầy đủ (tên thánh + họ + tên). Lớp có 2 GLV thì dò
@@ -49,7 +66,7 @@ export const useClassesStore = defineStore('classes', {
       if (!needle) return [];
 
       const matches = [];
-      const ordered = [...state.classes].sort((a, b) => a.order - b.order);
+      const ordered = [...state.classes].sort(compareClasses);
 
       for (const classItem of ordered) {
         for (const role of ['teacherName', 'assistantName']) {

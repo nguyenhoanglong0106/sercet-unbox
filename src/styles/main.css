@@ -2104,14 +2104,41 @@ textarea:focus {
 }
 
 .presenter-board .blind-grid {
+  grid-template-columns: repeat(auto-fill, minmax(clamp(118px, 8vw, 148px), 1fr));
+  gap: clamp(12px, 1.6vh, 20px) clamp(10px, 1.2vw, 18px);
   height: 100%;
-  padding: 12px 2px 0;
-  align-content: center;
-  overflow: hidden;
+  min-height: 0;
+  padding: 74px 8px 24px;
+  align-items: start;
+  align-content: start;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable both-edges;
 }
 
 .presenter-board .blind-bag {
-  max-width: 214px;
+  width: min(100%, 148px);
+  max-width: 148px;
+}
+
+.presenter-board .bag-logo {
+  width: 36px;
+  height: 36px;
+}
+
+.presenter-board .bag-title {
+  top: 38.5%;
+  font-size: 1.02rem;
+}
+
+.presenter-board .bag-year {
+  top: 51.5%;
+  font-size: 0.64rem;
+}
+
+.presenter-board .bag-question {
+  top: 58%;
+  font-size: 3.45rem;
 }
 
 .not-found {
